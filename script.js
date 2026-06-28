@@ -141,111 +141,6 @@ function drawGlobe() {
 }
 drawGlobe();
 
-// ── City background canvas ─────────────────────────────────
-const bg = document.getElementById('bgCanvas');
-const bx = bg.getContext('2d');
-
-function resizeBg() {
-  bg.width = window.innerWidth;
-  bg.height = window.innerHeight;
-  drawBg();
-}
-
-function drawBg() {
-  const w = bg.width, h = bg.height;
-  // Deep space gradient
-  const sky = bx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#020215');
-  sky.addColorStop(0.4, '#04041a');
-  sky.addColorStop(0.7, '#060620');
-  sky.addColorStop(1, '#010110');
-  bx.fillStyle = sky;
-  bx.fillRect(0, 0, w, h);
-
-  // Stars
-  for (let i = 0; i < 200; i++) {
-    const x = Math.random() * w;
-    const y = Math.random() * h * 0.7;
-    const r = Math.random() * 1.2;
-    const alpha = Math.random() * 0.8 + 0.2;
-    bx.beginPath();
-    bx.arc(x, y, r, 0, Math.PI * 2);
-    bx.fillStyle = `rgba(255,255,255,${alpha})`;
-    bx.fill();
-  }
-
-  // City silhouette - far buildings
-  bx.fillStyle = '#040414';
-  drawBuildings(bx, w, h, 0.72, 0.85, 30, 15, 80);
-
-  // City silhouette - near buildings
-  bx.fillStyle = '#020210';
-  drawBuildings(bx, w, h, 0.78, 0.95, 20, 20, 120);
-
-  // Neon reflections on water
-  const waterY = h * 0.88;
-  const waterGrad = bx.createLinearGradient(0, waterY, 0, h);
-  waterGrad.addColorStop(0, 'rgba(0,50,80,0.4)');
-  waterGrad.addColorStop(0.3, 'rgba(10,0,40,0.6)');
-  waterGrad.addColorStop(1, '#010108');
-  bx.fillStyle = waterGrad;
-  bx.fillRect(0, waterY, w, h - waterY);
-
-  // Neon glow lines on water
-  for (let i = 0; i < 6; i++) {
-    const x = w * (0.1 + i * 0.15);
-    const wg = bx.createLinearGradient(x - 40, waterY, x + 40, h);
-    const colors = ['rgba(0,212,255,', 'rgba(123,47,255,', 'rgba(255,47,255,'];
-    const c = colors[i % colors.length];
-    wg.addColorStop(0, c + '0.3)');
-    wg.addColorStop(0.5, c + '0.1)');
-    wg.addColorStop(1, c + '0)');
-    bx.fillStyle = wg;
-    bx.fillRect(x - 40 + i * 5, waterY, 80, h - waterY);
-  }
-
-  // Billboard glow panels
-  const panels = [
-    {x:0.08,y:0.55,w:80,h:50,c:'rgba(123,47,255,0.6)'},
-    {x:0.88,y:0.5,w:70,h:60,c:'rgba(0,212,255,0.5)'},
-    {x:0.93,y:0.62,w:50,h:40,c:'rgba(255,47,255,0.4)'},
-  ];
-  panels.forEach(p => {
-    const px = w * p.x, py = h * p.y;
-    const pg = bx.createRadialGradient(px, py, 0, px, py, p.w);
-    pg.addColorStop(0, p.c);
-    pg.addColorStop(1, 'transparent');
-    bx.fillStyle = pg;
-    bx.fillRect(px - p.w, py - p.h / 2, p.w * 2, p.h);
-  });
-}
-
-function drawBuildings(ctx, w, h, baseY, maxY, count, minW, maxW) {
-  const base = h * baseY;
-  const bottom = h * maxY;
-  for (let i = 0; i < count; i++) {
-    const bw = minW + Math.random() * (maxW - minW);
-    const bx2 = (w / count) * i + Math.random() * (w / count / 2);
-    const bh = (bottom - base) * (0.3 + Math.random() * 0.7);
-    ctx.fillRect(bx2, base - bh, bw, bh + (bottom - base));
-
-    // Window lights (subtle)
-    const wRows = Math.floor(bh / 14);
-    const wCols = Math.floor(bw / 10);
-    for (let r = 0; r < wRows; r++) {
-      for (let c = 0; c < wCols; c++) {
-        if (Math.random() > 0.75) {
-          const colors = ['rgba(0,150,220,0.25)','rgba(80,30,200,0.2)','rgba(200,160,30,0.18)'];
-          ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
-          ctx.fillRect(bx2 + c * 10 + 2, base - bh + r * 14 + 3, 3, 5);
-        }
-      }
-    }
-  }
-}
-
-resizeBg();
-window.addEventListener('resize', resizeBg);
 
 // ── Floating particles ──────────────────────────────────────
 const particlesEl = document.getElementById('particles');
@@ -422,6 +317,148 @@ function weatherDesc(code) {
 }
 
 loadWeather();
+
+// ── Venom zone: Links popup (mouth) ────────────────────────
+const linksPopup = document.getElementById('linksPopup');
+const searchPopup = document.getElementById('searchPopup');
+
+function positionPopup(popup, zone) {
+  const zr = zone.getBoundingClientRect();
+  const pw = popup.offsetWidth || 320;
+  let left = zr.left + zr.width / 2 - pw / 2;
+  let top  = zr.bottom + 12;
+  if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+  if (left < 16) left = 16;
+  if (top + 400 > window.innerHeight) top = zr.top - 420;
+  popup.style.left = left + 'px';
+  popup.style.top  = top + 'px';
+  popup.style.transform = '';
+}
+
+document.getElementById('zoneMouth').addEventListener('click', e => {
+  searchPopup.classList.remove('open');
+  const isOpen = linksPopup.classList.toggle('open');
+  if (isOpen) {
+    positionPopup(linksPopup, e.currentTarget);
+    renderLinks();
+  }
+});
+document.getElementById('closeLinks').addEventListener('click', () => linksPopup.classList.remove('open'));
+
+document.getElementById('zoneLeftEye').addEventListener('click', e => {
+  linksPopup.classList.remove('open');
+  const isOpen = searchPopup.classList.toggle('open');
+  if (isOpen) {
+    setTimeout(() => document.getElementById('venomSearchInput').focus(), 50);
+  }
+});
+document.getElementById('closeSearch').addEventListener('click', () => searchPopup.classList.remove('open'));
+
+// close on outside click
+document.addEventListener('click', e => {
+  if (!linksPopup.contains(e.target) && e.target.id !== 'zoneMouth')
+    linksPopup.classList.remove('open');
+  if (!searchPopup.contains(e.target) && e.target.id !== 'zoneLeftEye')
+    searchPopup.classList.remove('open');
+});
+
+// ── Saved links storage ─────────────────────────────────────
+function getLinks() {
+  return JSON.parse(localStorage.getItem('venom_links') || '[]');
+}
+function saveLinks(links) {
+  localStorage.setItem('venom_links', JSON.stringify(links));
+}
+
+function getFavicon(url) {
+  try {
+    const hostname = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?sz=32&domain=${hostname}`;
+  } catch { return ''; }
+}
+
+function renderLinks() {
+  const body = document.getElementById('linksBody');
+  const links = getLinks();
+  if (!links.length) {
+    body.innerHTML = '<div style="padding:16px;color:var(--text-dim);font-size:12px;text-align:center">هیچ لینکی ذخیره نشده<br><small>پایین اضافه کن</small></div>';
+    return;
+  }
+  body.innerHTML = links.map((l, i) => `
+    <div class="link-item" data-idx="${i}">
+      <img class="link-favicon" src="${getFavicon(l.url)}" onerror="this.style.display='none'">
+      <div style="flex:1;overflow:hidden">
+        <div class="link-name">${l.name}</div>
+        <div class="link-url">${l.url}</div>
+      </div>
+      <button class="link-del" data-idx="${i}">✕</button>
+    </div>
+  `).join('');
+
+  body.querySelectorAll('.link-item').forEach(el => {
+    el.addEventListener('click', ev => {
+      if (ev.target.classList.contains('link-del')) return;
+      const idx = +el.dataset.idx;
+      window.open(links[idx].url, '_blank');
+    });
+  });
+  body.querySelectorAll('.link-del').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const links2 = getLinks();
+      links2.splice(+btn.dataset.idx, 1);
+      saveLinks(links2);
+      renderLinks();
+    });
+  });
+}
+
+document.getElementById('saveLink').addEventListener('click', () => {
+  const name = document.getElementById('newLinkName').value.trim();
+  const url  = document.getElementById('newLinkUrl').value.trim();
+  if (!name || !url) return;
+  const links = getLinks();
+  links.push({ name, url: url.startsWith('http') ? url : 'https://' + url });
+  saveLinks(links);
+  document.getElementById('newLinkName').value = '';
+  document.getElementById('newLinkUrl').value  = '';
+  renderLinks();
+});
+
+// enter key in link inputs
+['newLinkName','newLinkUrl'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('saveLink').click();
+  });
+});
+
+// ── Venom search (eye) ──────────────────────────────────────
+let activeEngine = 'google';
+document.querySelectorAll('.eng-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.eng-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeEngine = btn.dataset.engine;
+    document.getElementById('venomSearchInput').focus();
+  });
+});
+
+function venomSearch() {
+  const q = document.getElementById('venomSearchInput').value.trim();
+  if (!q) return;
+  const engines = {
+    google:  `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+    youtube: `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+    github:  `https://github.com/search?q=${encodeURIComponent(q)}`,
+  };
+  window.location.href = engines[activeEngine] || engines.google;
+}
+
+document.getElementById('venomSearchBtn').addEventListener('click', venomSearch);
+document.getElementById('venomSearchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') venomSearch();
+  if (e.key === 'Escape') searchPopup.classList.remove('open');
+});
 
 // ── Add link modal ──────────────────────────────────────────
 const modal = document.getElementById('addModal');

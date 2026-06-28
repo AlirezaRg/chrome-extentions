@@ -7,8 +7,54 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Background city canvas -->
-  <canvas id="bgCanvas"></canvas>
+  <!-- Background video -->
+  <video id="bgVideo" autoplay loop muted playsinline>
+    <source src="wallpaper.mp4" type="video/mp4">
+  </video>
+  <div id="bgOverlay"></div>
+
+  <!-- Venom clickable zones -->
+  <div id="venomZones">
+    <div class="venom-zone" id="zoneLeftEye" title="Search">
+      <span class="zone-hint">👁 Search</span>
+    </div>
+    <div class="venom-zone" id="zoneMouth" title="My Links">
+      <span class="zone-hint">🔗 Links</span>
+    </div>
+  </div>
+
+  <!-- Links popup (mouth click) -->
+  <div id="linksPopup" class="venom-popup">
+    <div class="popup-header">
+      <span>⬡ SAVED LINKS</span>
+      <button class="popup-close" id="closeLinks">✕</button>
+    </div>
+    <div class="popup-body" id="linksBody"></div>
+    <div class="popup-footer">
+      <input type="text" id="newLinkName" placeholder="Name...">
+      <input type="text" id="newLinkUrl" placeholder="https://...">
+      <button id="saveLink">+ Save</button>
+    </div>
+  </div>
+
+  <!-- Search popup (eye click) -->
+  <div id="searchPopup" class="venom-popup">
+    <div class="popup-header">
+      <span>⬡ VENOM SEARCH</span>
+      <button class="popup-close" id="closeSearch">✕</button>
+    </div>
+    <div class="popup-body" style="padding:16px">
+      <div class="venom-search-bar">
+        <input type="text" id="venomSearchInput" placeholder="Search the web...">
+        <button id="venomSearchBtn">→</button>
+      </div>
+      <div class="search-engines">
+        <button class="eng-btn active" data-engine="google">Google</button>
+        <button class="eng-btn" data-engine="youtube">YouTube</button>
+        <button class="eng-btn" data-engine="github">GitHub</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Floating particles -->
   <div id="particles"></div>
