@@ -1,0 +1,5 @@
+
+# Large video files - keep local only
+*.mp4
+*.mkv
+*.avi
